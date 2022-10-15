@@ -1,21 +1,4 @@
-Citizen.CreateThread(function()
-    local tables = {
-        ['users'] = {
-            'CREATE TABLE IF NOT EXISTS adminskin (identifier varchar(60) NOT NULL, skin longtext DEFAULT NULL)',
-            'ALTER TABLE adminskin ADD PRIMARY KEY (identifier)'
-        }
-    }
-
-    for row, values in pairs(tables) do
-        MySQL.query(values[1], {}, function(result)
-            if result.warningStatus == 0 then
-                for i = 2, #values do
-                    MySQL.query(values[i])
-                end
-            end
-        end)
-    end
-end)
+MySQL.query('CREATE TABLE IF NOT EXISTS adminskin (identifier varchar(60) NOT NULL, skin longtext DEFAULT NULL)')
 
 function deleteSkin(xPlayer, cb)
 	MySQL.query('DELETE FROM adminskin WHERE identifier = ?', {xPlayer.identifier}, function(result) cb(result) end)
