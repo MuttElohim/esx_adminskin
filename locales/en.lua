@@ -1,9 +1,8 @@
 Locales['en'] = {
-  ['title_adminskin'] = 'Admin Skin',
-  ['title_custom'] = 'Custom',
-  ['title_custom2'] = 'Personal Custom',
-  ['title_deletecustom'] = 'Delete Personal',
   ['title_dress'] = 'Dress',
+  ['title_custom'] = 'Customise Skin',
+  ['title_personalcustom'] = 'Custom Personal Skin',
+  ['title_personaldelete'] = 'Delete Personal Skin',
   ['command_adminskin'] = 'Toggle Admin Skin',
   ['command_adminskinmenu'] = 'Open Admin Skin Menu',
 }

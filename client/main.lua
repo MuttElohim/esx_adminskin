@@ -5,106 +5,75 @@ local restricted = {
 	'arms',	'arms_2',
 	'pants_1', 'pants_2',
 	'shoes_1', 'shoes_2',
-	'bags_1', 'bags_2',
+	-- 'bags_1', 'bags_2',
 	'chain_1', 'chain_2',
 	'helmet_1', 'helmet_2',
 	'glasses_1', 'glasses_2'
 }
 
-local menuelements = {
-	{unselectable = "true", title = TranslateCap('title_adminskin'), icon = "fa-solid fa-vest"},
+local elements = {
 	{name = "dress", title = TranslateCap("title_dress"), icon = "fa-solid fa-shirt"}
 }
 
-if Config.Custom then
-	menuelements[#menuelements+1] = {name = "custom", title = TranslateCap("title_custom"), icon = "fa-solid fa-palette"}
+function AddElement(element) elements[#elements+1] = element end
+
+if Config.Custom then AddElement({name = "custom", title = TranslateCap("title_custom"), icon = "fa-solid fa-palette"}) end
+
+if Config.Personal then
+	AddElement({name = "personalcustom", title = TranslateCap("title_personalcustom"), icon = "fa-solid fa-pen-to-square"})
+	AddElement({name = "personaldelete", title = TranslateCap("title_personaldelete"), icon = "fa-solid fa-trash"})
 end
 
-if Config.CustomSkin then
-	menuelements[#menuelements+1] = {name = "custom2", title = TranslateCap("title_custom2"), icon = "fa-solid fa-pen-to-square"}
-	menuelements[#menuelements+1] = {name = "deletecustom", title = TranslateCap("title_deletecustom"), icon = "fa-solid fa-trash"}
-end
+local Dressed = false
 
-local AdminDressed = false
+function Undress() ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin) TriggerEvent('skinchanger:loadSkin', skin, function() Dressed = false end) end) end
 
-function Undress()
-	ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin, jobSkin)
-		TriggerEvent('skinchanger:loadSkin', skin, function() AdminDressed = false end)
-	end)
-end
-
-function Dress(global, cb)
-	ESX.TriggerServerCallback('esx_adminskin:getAdminSkin', function(adminskin)
+function Dress(personal, cb)
+	ESX.TriggerServerCallback('esx_adminskin:GetSkin', function(_skin)
 		TriggerEvent('skinchanger:getSkin', function(skin)
-			local editskin = skin
-			for _,i in pairs(restricted) do
-				skin[i] = adminskin[i]
-			end
-			TriggerEvent('skinchanger:loadSkin', editskin, function()
-				AdminDressed = true 
-				if cb then cb() end
-			end)
+			for _,i in pairs(restricted) do skin[i] = _skin[i] end
+			TriggerEvent('skinchanger:loadSkin', skin, function() Dressed = true if cb then cb() end end)
 		end)
-	end, global)
+	end, personal)
 end
 
-function toggledress()
-	if AdminDressed then
-		Undress()
-	else
-		Dress()
-	end
-end
+function ToggleSkin() if Dressed then Undress() else Dress(true) end end
 
 function OpenMenu()
-    ESX.OpenContext("right", menuelements, function(menu, item)
-		if item.name == 'custom' then
-			undressbef = false
-			if not AdminDressed then undressbef = true Dress(true, function() CustomSkin(true) end) else CustomSkin(true) end
-		elseif item.name == 'custom2' then
-			undressbef = false
-			if not AdminDressed then undressbef = true Dress(false, function() CustomSkin() end) else CustomSkin() end
-		elseif item.name == 'deletecustom' then
-			ESX.TriggerServerCallback('esx_adminskin:deleteAdminSkin', function()
-				if AdminDressed then
-					Undress()
-				end
-			end)
-		elseif item.name == 'dress' then
-			toggledress()
+    ESX.OpenContext("right", elements, function(menu, item)
+		if item.name == 'dress' then
+			ToggleSkin()
+		elseif item.name == 'custom' then
+			CustomSkin()
+		elseif item.name == 'personalcustom' then
+			CustomSkin(true)
+		elseif item.name == 'personaldelete' then
+			ESX.TriggerServerCallback('esx_adminskin:DeleteSkin', function() if Dressed then Undress() end end)
 		end
 	end)
 end
 
-function CustomSkin(global)
-	ESX.CloseContext()
-			
-	TriggerEvent('esx_skin:openRestrictedMenu', function(data, menu)
-		menu.close()
+function CustomSkin(personal)
+	Dress(personal, function()
+		ESX.CloseContext()
 
-		TriggerEvent('skinchanger:getSkin', function(skin)
-			local editskin = {}
-			for _,i in pairs(restricted) do
-				editskin[i] = skin[i]
-			end
-			TriggerServerEvent('esx_adminskin:save', global, editskin)
-		end)
+		TriggerEvent('esx_skin:openRestrictedMenu', function(data, menu)
+			menu.close()
 
-		if undressbef then Undress() end
+			TriggerEvent('skinchanger:getSkin', function(skin)
+				local _skin = {}
+				for _,i in pairs(restricted) do _skin[i] = skin[i] end
+				TriggerServerEvent('esx_adminskin:SaveSkin', _skin, personal)
 
-		OpenMenu()
-	end, function(data, menu)
-		menu.close()
-
-		if undressbef then Undress() end
-
-		OpenMenu()
-	end, restricted)
+				OpenMenu()
+			end)
+		end, function(data, menu) menu.close() OpenMenu() end, restricted)
+	end)
 end
 
-RegisterNetEvent('esx_adminskin:toggledress')
-AddEventHandler('esx_adminskin:toggledress', function()
-	toggledress()
+RegisterNetEvent('esx_adminskin:ToggleSkin')
+AddEventHandler('esx_adminskin:ToggleSkin', function()
+	ToggleSkin()
 end)
 
 RegisterNetEvent('esx_adminskin:OpenMenu')
