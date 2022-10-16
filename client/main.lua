@@ -29,12 +29,12 @@ local Dressed = false
 function Undress() ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin) TriggerEvent('skinchanger:loadSkin', skin, function() Dressed = false end) end) end
 
 function Dress(personal, cb)
-	ESX.TriggerServerCallback('esx_adminskin:GetSkin', function(_skin)
-		TriggerEvent('skinchanger:getSkin', function(skin)
+	TriggerEvent('skinchanger:getSkin', function(skin)
+		ESX.TriggerServerCallback('esx_adminskin:GetSkin', function(_skin)
 			for _,i in pairs(restricted) do skin[i] = _skin[i] end
 			TriggerEvent('skinchanger:loadSkin', skin, function() Dressed = true if cb then cb() end end)
-		end)
-	end, personal)
+		end, personal, skin['sex'])
+	end)
 end
 
 function ToggleSkin() if Dressed then Undress() else Dress(true) end end
@@ -63,7 +63,7 @@ function CustomSkin(personal)
 			TriggerEvent('skinchanger:getSkin', function(skin)
 				local _skin = {}
 				for _,i in pairs(restricted) do _skin[i] = skin[i] end
-				TriggerServerEvent('esx_adminskin:SaveSkin', _skin, personal)
+				TriggerServerEvent('esx_adminskin:SaveSkin', _skin, personal, skin['sex'])
 
 				OpenMenu()
 			end)
