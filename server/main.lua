@@ -11,23 +11,23 @@ ESX.RegisterServerCallback('esx_adminskin:DeleteSkin', function(source, cb)
 end)
 
 RegisterServerEvent('esx_adminskin:SaveSkin')
-AddEventHandler('esx_adminskin:SaveSkin', function(skin, personal)
+AddEventHandler('esx_adminskin:SaveSkin', function(skin, personal, gender)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local skin = json.encode(skin)
 	if personal then
 		DeleteSkin(xPlayer, function() MySQL.insert('INSERT INTO admin_skin (identifier, skin) VALUES (?, ?)', {xPlayer.identifier, skin}) end)
 	else
-		SaveResourceFile(GetCurrentResourceName(), 'adminskin.txt', skin)
+		SaveResourceFile(GetCurrentResourceName(), 'adminskin' .. (gender == 1 and 'fe' or '') .. 'male.txt', skin)
 	end
 end)
 
-ESX.RegisterServerCallback('esx_adminskin:GetSkin', function(source, cb, personal)
+ESX.RegisterServerCallback('esx_adminskin:GetSkin', function(source, cb, personal, gender)
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	MySQL.single('SELECT skin FROM admin_skin WHERE identifier = @identifier', {
 		['@identifier'] = xPlayer.identifier
 	}, function(admin)
-		cb(json.decode(personal and admin and admin.skin or LoadResourceFile(GetCurrentResourceName(), 'adminskin.txt')))
+		cb(json.decode(personal and admin and admin.skin or LoadResourceFile(GetCurrentResourceName(), 'adminskin' .. (gender == 1 and 'fe' or '') .. 'male.txt')))
 	end)
 end)
 
